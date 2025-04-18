@@ -29,7 +29,7 @@ resource "aws_api_gateway_integration" "get_integration" {
   http_method = aws_api_gateway_method.get_method.http_method
   type        = "AWS_PROXY"
   integration_http_method = "POST"
-  uri         = "${var.lambda_function_arn}/invocations"
+  uri         = "arn:aws:apigateway:${var.region}:lambda:path/2015-03-31/functions/${var.lambda_function_arn}/invocations"
 }
 
 resource "aws_api_gateway_integration" "post_integration" {
@@ -38,10 +38,15 @@ resource "aws_api_gateway_integration" "post_integration" {
   http_method = aws_api_gateway_method.post_method.http_method
   type        = "AWS_PROXY"
   integration_http_method = "POST"
-  uri         = "${var.lambda_function_arn}/invocations"
+  uri         = "arn:aws:apigateway:${var.region}:lambda:path/2015-03-31/functions/${var.lambda_function_arn}/invocations"
 }
 
 variable "lambda_function_arn" {
   description = "The ARN of the Lambda function"
+  type        = string
+}
+
+variable "region" {
+  description = "The AWS region"
   type        = string
 }
