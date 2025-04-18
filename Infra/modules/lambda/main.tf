@@ -17,7 +17,7 @@ resource "aws_lambda_function" "user_data_function" {
   handler       = "lambda_function.lambda_handler"
   runtime       = "python3.8"
   role          = aws_iam_role.lambda_exec_role.arn
-  source_code_hash = filebase64sha256("lambda_function.py")
+  source_code_hash = filebase64sha256("lambda_function.zip")
 
   environment {
     variables = {
