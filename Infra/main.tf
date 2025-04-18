@@ -1,5 +1,5 @@
 provider "aws" {
-  region = "us-west-2"
+  region = var.region
 }
 
 module "dynamodb" {
@@ -14,4 +14,10 @@ module "lambda" {
 module "api_gateway" {
   source = "./modules/api_gateway"
   lambda_function_arn = module.lambda.lambda_function_arn
+  region = var.region
+}
+
+variable "region" {
+  description = "The AWS region"
+  default     = "us-west-2"
 }
