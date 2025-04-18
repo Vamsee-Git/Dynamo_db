@@ -16,8 +16,3 @@ module "api_gateway" {
   lambda_function_arn = module.lambda.lambda_function_arn
   region = var.region
 }
-
-variable "region" {
-  description = "The AWS region"
-  default     = "us-west-2"
-}
