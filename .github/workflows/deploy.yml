@@ -1,0 +1,129 @@
+name: Deploy Terraform
+
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Branch to deploy'
+        required: true
+        default: 'main'
+  push:
+    branches:
+      - main
+        
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  id-token: write
+  contents: write
+  pull-requests: write
+
+jobs:
+  terraform:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.ref || github.ref }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install Git LFS
+        run: |
+          git lfs install
+
+      - name: Track Large Files with Git LFS
+        run: |
+          git lfs track "Infra/.terraform/providers/registry.terraform.io/hashicorp/aws/5.87.0/linux_amd64/terraform-provider-aws_v5.87.0_x5"
+          git add .gitattributes
+
+      - name: Commit Changes (if any)
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git commit -m "Add Terraform provider binary to Git LFS" || echo "No changes to commit"
+
+      - name: Push Changes
+        run: |
+          git push origin ${{ github.event.pull_request.head.ref || github.ref }}
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          role-to-assume: arn:aws:iam::877786395093:role/github-oidc-vamsee
+          aws-region: us-west-2
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v1
+        with:
+          terraform_version: 1.11.0
+
+      - name: Terraform Init
+        run: terraform init -reconfigure
+        working-directory: ./Infra
+
+      - name: Terraform Plan
+        run: terraform plan -var-file="../environments/dev/terraform.tfvars" -out=tfplan
+        working-directory: ./Infra
+
+      - name: Run TFLint
+        uses: terraform-linters/setup-tflint@v4
+        with:
+          tflint_version: latest
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Init TFLint
+        run: tflint --init
+        working-directory: ./Infra
+
+      - name: Run TFLint
+        run: tflint -f compact
+        working-directory: ./Infra
+
+      - name: Set up Python 3.8
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.8
+
+      - name: Run Checkov with soft fail
+        run: |
+          pip install checkov
+          checkov --directory . --soft-fail
+      
+
+      - name: Generate Markdown with Terraform Docs
+        if: github.event_name == 'push' || github.event_name == 'pull_request'
+        uses: terraform-docs/gh-actions@v1.3.0
+        with:
+          working-dir: ./Infra
+          output-file: README.md
+          output-method: inject
+          git-push: true
+          config-file: .terraform-docs.yml
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configure Git
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+
+      - name: Posting README.md as PR Comment
+        if: github.event_name == 'pull_request'
+        uses: marocchino/sticky-pull-request-comment@v2.9.0
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          header: "Terraform Documentation "
+          path: "./Infra/README.md"
+
+      - name: Applying Terraform after PR Merge
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          cd ./Infra
+          terraform init
+          terraform apply -auto-approve -var-file="../environments/dev/terraform.tfvars"
