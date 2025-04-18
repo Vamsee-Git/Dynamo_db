@@ -41,6 +41,18 @@ resource "aws_api_gateway_integration" "post_integration" {
   uri         = "arn:aws:apigateway:${var.region}:lambda:path/2015-03-31/functions/${var.lambda_function_arn}/invocations"
 }
 
+resource "aws_api_gateway_deployment" "api_deployment" {
+  rest_api_id = aws_api_gateway_rest_api.user_api.id
+  stage_name  = "prod"
+}
+
+resource "aws_api_gateway_stage" "api_stage" {
+  rest_api_id = aws_api_gateway_rest_api.user_api.id
+  stage_name  = aws_api_gateway_deployment.api_deployment.stage_name
+  deployment_id = aws_api_gateway_deployment.api_deployment.id
+}
+
+
 variable "lambda_function_arn" {
   description = "The ARN of the Lambda function"
   type        = string
