@@ -4,6 +4,6 @@ terraform{
     key            = "terraform/dynamodb"
     region         = "us-west-1"
     encrypt        = true
-    #dynamodb_table = "Dynamodb-lock"
+    ##dynamodb_table = "Dynamodb-lock"
   }
 }
