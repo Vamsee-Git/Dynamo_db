@@ -1,0 +1,65 @@
+name: terraform-destroy
+
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Branch to destroy'
+        required: true
+        default: 'main'
+  pull_request:
+    types: [closed]
+
+permissions:
+  id-token: write
+  contents: write
+  pull-requests: write
+
+jobs:
+  terraform-destroy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.ref || github.ref }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install Git LFS
+        run: |
+          git lfs install
+      - name: Track Large Files with Git LFS
+        run: |
+          git lfs track ".terraform/providers/registry.terraform.io/hashicorp/aws/5.87.0/linux_amd64/terraform-provider-aws_v5.87.0_x5"
+          git add .gitattributes
+      - name: Commit Changes (if any)
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git commit -m "Add Terraform provider binary to Git LFS" || echo "No changes to commit"
+      - name: Push Changes
+        run: |
+          git push origin ${{ github.event.pull_request.head.ref || github.ref }}
+      - name: Set up AWS credentials with OIDC
+        uses: aws-actions/configure-aws-credentials@v3
+        with:
+          role-to-assume: arn:aws:iam::877786395093:role/github-oidc-vamsee
+          aws-region: us-west-1
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v1
+        with:
+          terraform_version: 1.11.0
+
+      - name: Terraform Init
+        run: |
+          cd ./Infra
+          terraform init -reconfigure
+        
+
+      - name: Terraform Destroy
+        run: |
+          cd ./Infra
+          terraform destroy -auto-approve -var-file="../environments/dev/terraform.tfvars"
