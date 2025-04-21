@@ -22,11 +22,11 @@ resource "aws_dynamodb_table" "user_data" {
 resource "aws_lambda_function" "user_data_function" {
   function_name = "user_data_function"
   role          = aws_iam_role.lambda_exec_role.arn
-  handler       = "index.lambda_handler"
+  handler       = "lambda_function.lambda_handler"
   runtime       = "python3.8"
-  source_code_hash = filebase64sha256("lambda_function_payload.zip")
+  source_code_hash = filebase64sha256("lambda_function.zip")
 
-  filename = "lambda_function_payload.zip"
+  filename = "lambda_function.zip"
 }
 
 resource "aws_iam_role" "lambda_exec_role" {
