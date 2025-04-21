@@ -64,6 +64,9 @@ resource "aws_lambda_function" "user_data_function" {
   runtime       = "python3.8"
   role          = aws_iam_role.lambda_exec_role.arn
   timeout       = 10
+  tracing_config{
+    mode= "Active"
+  }
   environment {
     variables = {
       DYNAMODB_TABLE = var.dynamodb_table
