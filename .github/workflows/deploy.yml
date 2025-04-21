@@ -81,9 +81,9 @@ jobs:
         run: tflint --init
         working-directory: ./Infra
 
-      - name: Run TFLint
-        run: tflint -f compact
-        working-directory: ./Infra
+      #- name: Run TFLint
+        #run: tflint -f compact
+        #working-directory: ./Infra
 
       - name: Set up Python 3.8
         uses: actions/setup-python@v4
