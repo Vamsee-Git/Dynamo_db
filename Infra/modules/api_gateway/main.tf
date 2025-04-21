@@ -52,13 +52,6 @@ resource "aws_api_gateway_deployment" "api_deployment" {
   ]
 }
 
-resource "aws_api_gateway_stage" "api_stage" {
-  rest_api_id = aws_api_gateway_rest_api.user_api.id
-  stage_name  = aws_api_gateway_deployment.api_deployment.stage_name
-  deployment_id = aws_api_gateway_deployment.api_deployment.id
-}
-
-
 variable "lambda_function_arn" {
   description = "The ARN of the Lambda function"
   type        = string
