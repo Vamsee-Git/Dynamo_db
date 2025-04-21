@@ -59,16 +59,9 @@ resource "aws_lambda_permission" "apigateway_invoke" {
   action        = "lambda:InvokeFunction"
   function_name = var.lambda_function_arn
   principal     = "apigateway.amazonaws.com"
-  source_arn    = "arn:aws:execute-api:${var.region}:${data.aws_caller_identity.current.account_id}:${aws_api_gateway_rest_api.user_api.id}/*/POST/user"
+  source_arn    = "arn:aws:execute-api:${var.region}:${data.aws_caller_identity.current.account_id}:${aws_api_gateway_rest_api.user_api.id}/*/*/user"
 }
 
-resource "aws_lambda_permission" "apigateway_invoke" {
-  statement_id  = "AllowAPIGatewayInvoke"
-  action        = "lambda:InvokeFunction"
-  function_name = var.lambda_function_arn
-  principal     = "apigateway.amazonaws.com"
-  source_arn    = "arn:aws:execute-api:${var.region}:${data.aws_caller_identity.current.account_id}:${aws_api_gateway_rest_api.user_api.id}/*/GET/user"
-}
 
 variable "lambda_function_arn" {
   description = "The ARN of the Lambda function"
