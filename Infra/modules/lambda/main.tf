@@ -11,7 +11,30 @@ resource "aws_iam_role" "lambda_exec_role" {
     }]
   })
 }
+resource "aws_iam_policy" "dynamodb_policy" {
+  name        = "dynamodb_policy"
+  description = "Policy to allow Lambda function to access DynamoDB"
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Effect = "Allow",
+        Action = [
+          "dynamodb:PutItem",
+          "dynamodb:GetItem",
+          "dynamodb:Scan",
+          "dynamodb:Query"
+        ],
+        Resource = "arn:aws:dynamodb:us-west-2:877786395093:table/user_data"
+      }
+    ]
+  })
+}
 
+resource "aws_iam_role_policy_attachment" "lambda_exec_role_policy_attachment" {
+  role       = aws_iam_role.lambda_exec_role.name
+  policy_arn = aws_iam_policy.dynamodb_policy.arn
+}
 resource "aws_lambda_function" "user_data_function" {
   function_name = "user_data_function"
   handler       = "lambda_function.lambda_handler"
