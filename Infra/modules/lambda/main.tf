@@ -31,6 +31,7 @@ resource "aws_iam_policy" "dynamodb_policy" {
   })
 }
 
+
 resource "aws_iam_policy" "lambda_policy" {
   name        = "lambda_policy"
   description = "Policy to allow Lambda function to be invoked"
@@ -51,11 +52,6 @@ resource "aws_iam_policy" "lambda_policy" {
 resource "aws_iam_role_policy_attachment" "lambda_exec_role_lambda_policy_attachment" {
   role       = aws_iam_role.lambda_exec_role.name
   policy_arn = aws_iam_policy.lambda_policy.arn
-}
-
-resource "aws_iam_role_policy_attachment" "lambda_exec_role_lambda_policy_attachment" {
-  role       = aws_iam_role.lambda_exec_role.name
-  policy_arn = aws_iam_policy.lambda_policy.arn
 }
 
 resource "aws_iam_role_policy_attachment" "lambda_exec_role_policy_attachment" {
