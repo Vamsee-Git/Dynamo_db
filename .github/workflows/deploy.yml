@@ -63,7 +63,7 @@ jobs:
           terraform_version: 1.11.0
 
       - name: Terraform Init
-        run: terraform init -reconfigure
+        run: terraform init -upgrade
         working-directory: ./Infra
 
       - name: Terraform Plan
